@@ -1,5 +1,6 @@
 # Local machine
 .local/
+extracted_ota/
 sources/
 
 # Log/OS Files
