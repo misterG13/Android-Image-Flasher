@@ -1,6 +1,7 @@
 # Local machine
+.cspell/
 .local/
-extracted_ota/
+image_files/
 sources/
 
 # Log/OS Files
