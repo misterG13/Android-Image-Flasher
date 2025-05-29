@@ -138,14 +138,18 @@ erase_active_partition() {
   *) echo "Invalid choice. Exiting." && return ;;
   esac
 
-  echo "Erasing $ACTIVE_PARTITION..."
+  if [ -n "$ACTIVE_PARTITION" ]; then
+    echo "Erasing all partitions on slot $ACTIVE_PARTITION:"
+  else
+    echo "Erasing all partitions on the active slot:"
+  fi
 
   for img_file in "${img_files[@]}"; do
     partition=$(basename "$img_file" .img)
     partition_name="${partition}${ACTIVE_PARTITION}"
 
     echo "Erasing $partition_name..."
-    fastboot erase "$partition_name"
+    # fastboot erase "$partition_name"
 
     if [ $? -ne 0 ]; then
       echo "Failed to erase $partition_name."
@@ -153,7 +157,11 @@ erase_active_partition() {
     fi
   done
 
-  echo "All partitions on slot $ACTIVE_PARTITION erased successfully."
+  if [ -n "$ACTIVE_PARTITION" ]; then
+    echo "All partitions on slot $ACTIVE_PARTITION erased successfully"
+  else
+    echo "All partitions on the active slot have been erased successfully"
+  fi
 }
 
 # Function to flash a partition
@@ -235,7 +243,7 @@ while true; do
   echo "3. Find Phone's active slot"
   echo "4. Select an active slot"
   if [ -n "$ACTIVE_PARTITION" ]; then
-    echo "5. Erase slot '$ACTIVE_PARTITION' partitions"
+    echo "5. Erase slot $ACTIVE_PARTITION partitions"
   else
     echo "5. Erase all active partitions"
   fi
