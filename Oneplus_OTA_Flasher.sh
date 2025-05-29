@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set directory for extracted OTA images
-OTA_DIR="./extracted_ota"
+OTA_DIR="./image_files"
 
 # Create an array of .img files in the directory
 img_files=()
@@ -99,18 +99,28 @@ select_active_partition() {
   echo "Select the active slot:"
   echo "1. _a"
   echo "2. _b"
-  read -p "Enter your choice (1/2): " choice
+  echo "3. Clear active slot"
+
+  read -p "Enter your choice (1/2/3): " choice
 
   case $choice in
   1) ACTIVE_PARTITION="_a" ;;
   2) ACTIVE_PARTITION="_b" ;;
+  3)
+    echo "Clearing active slot."
+    unset ACTIVE_PARTITION
+    ;;
   *)
     echo "Invalid choice. Defaulting to _a."
     ACTIVE_PARTITION="_a"
     ;;
   esac
 
-  echo "Active slot set to: $ACTIVE_PARTITION"
+  if [ -z "$ACTIVE_PARTITION" ]; then
+    echo "Active slot cleared."
+  else
+    echo "Active slot set to: $ACTIVE_PARTITION"
+  fi
 }
 
 erase_active_partition() {
@@ -224,7 +234,11 @@ while true; do
   echo "2. Enter bootloader mode"
   echo "3. Find Phone's active slot"
   echo "4. Select an active slot"
-  echo "5. Erase partitions"
+  if [ -n "$ACTIVE_PARTITION" ]; then
+    echo "5. Erase slot '$ACTIVE_PARTITION' partitions"
+  else
+    echo "5. Erase all active partitions"
+  fi
   echo "6. Begin flashing in fastbootd mode (1/2)"
   echo "7. Finish flashing in bootloader mode (2/2)"
   echo "8. Reboot to phone's OS"
