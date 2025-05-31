@@ -181,7 +181,8 @@ erase_active_partition() {
     partition_name="${partition}${ACTIVE_PARTITION}"
 
     echo "Erasing $partition_name..."
-    # fastboot erase "$partition_name"
+    fastboot erase "$partition_name"
+    # echo "fastboot erase "$partition_name"" # testing purposes
 
     if [ $? -ne 0 ]; then
       echo "Failed to erase $partition_name."
