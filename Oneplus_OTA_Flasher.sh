@@ -3,56 +3,88 @@
 # Set directory for extracted OTA images
 OTA_DIR="./image_files"
 
-# Create an array of .img files in the directory
+# Check if directory exists; if not: create it
+if [ ! -d "$OTA_DIR" ]; then
+  mkdir -p "$OTA_DIR"
+fi
+
+# Create an array using the filenames of  the .bin & .img files in the directory
 img_files=()
-for file in "$OTA_DIR"/*.img; do
-  img_files+=("$file")
+for file in "$OTA_DIR"/*; do
+  if [[ "$file" == *.img || "$file" == *.bin ]]; then
+    img_files+=("$file")
+  fi
 done
 
 # Function to check if device is connected in fastbootd
 enter_fastbootd_mode() {
   echo "Checking for a connected device in fastbootd mode..."
-
   fastboot devices | grep -q "fastboot"
 
+  # Failed to find a device in fastbootd mode
   if [ $? -ne 0 ]; then
-    echo "Device not found in fastbootd mode. Attempting to reboot into fastbootd mode..."
+    echo "Device not found in fastbootd mode"
+    echo "Attempting to reboot into fastbootd mode..."
+
     adb reboot fastboot
-    sleep 5 # Wait for reboot to complete
+    fastboot wait-for-device 2>/dev/null
+    # "2>/dev/null" Suppresses an error that seems to be a false positive
+
+    # Re-check for device in fastbootd mode
     fastboot devices | grep -q "fastboot"
 
+    # Failed to pass re-check of fastbootd mode
     if [ $? -ne 0 ]; then
       echo "Device failed to reboot into fastbootd mode."
       return 0
+    else
+      echo "Device found in fastbootd mode"
+      return 1
     fi
-
-    echo "Successful reboot into fastbootd mode."
+  else
+    echo "Device found in fastbootd mode."
+    return 1
   fi
-
-  echo "Device is in fastbootd mode."
 }
 
 # Function to check if device is in bootloader mode
 enter_bootloader_mode() {
-  echo "Checking for a connected device in bootloader mode..."
+  # Check if device is in fastbootd mode first
+  if ! fastboot devices | grep -q "fastboot"; then
+    echo "Error: Device is not in fastbootd mode. Switching to fastbootd mode first."
+    enter_fastbootd_mode
+  fi
 
+  echo "Checking for a connected device in bootloader mode..."
   fastboot devices | grep -q "bootloader"
 
+  # Failed to find a device in bootloader mode
   if [ $? -ne 0 ]; then
-    echo "Device not found in bootloader mode. Attempting to reboot into bootloader mode..."
+    echo "Device not found in bootloader mode."
+    echo "Attempting to reboot into bootloader mode..."
+
     fastboot reboot bootloader
-    sleep 5 # Wait for reboot to complete
+    # fastboot wait-for-device 2>/dev/null
+    # "2>/dev/null" Suppresses an error that seems to be a false positive
+    while ! fastboot devices; do
+      sleep 1
+    done
+
+    # Re-check for device in bootloader mode
     fastboot devices | grep -q "bootloader"
 
+    # Failed to pass re-check of bootloader mode
     if [ $? -ne 0 ]; then
       echo "Device failed to reboot into bootloader mode."
       return 0
+    else
+      echo "Device found in bootloader mode."
+      return 1
     fi
-
-    echo "Successful reboot into bootloader mode."
+  else
+    echo "Device found in bootloader mode."
+    return 1
   fi
-
-  echo "Device is in bootloader mode."
 }
 
 # Function to get the active partition (_a or _b)
@@ -125,7 +157,7 @@ select_active_partition() {
 
 erase_active_partition() {
   if [ -z $ACTIVE_PARTITION ]; then
-    echo "This will erase the phone's currently in use slot"
+    echo "This will erase the devices's currently in use slot"
     read -p "Do you want to continue? (y/n) " choice
   else
     echo "This will erase slot $ACTIVE_PARTITION"
@@ -171,6 +203,7 @@ flash_image() {
 
   echo "Flashing ${partition} with ${image}..."
   fastboot flash $partition $image
+  # echo "fastboot flash $partition $image" # testing purposes
 
   # Check if the flash command was successful
   if [ $? -ne 0 ]; then
@@ -179,6 +212,8 @@ flash_image() {
   else
     echo "${partition} flashed successfully!"
   fi
+
+  echo "" # Spacer
 }
 
 # Function to flash a partition and handle failures
@@ -189,8 +224,8 @@ flash_fastbootd_partitions() {
     exit 1
   fi
 
+  echo "Begin flashing dynamic partitions..."
   echo "" # Spacer
-  echo "Flashing dynamic partitions..."
 
   failed_files=()
   for img in "${img_files[@]}"; do
@@ -211,8 +246,8 @@ flash_bootloader_partitions() {
       exit 1
     fi
 
+    echo "Flashing system partitions..."
     echo "" # Spacer
-    echo "Flashing non-dynamic partitions..."
 
     for failed_file in "${failed_files[@]}"; do
       partition=$(basename "$failed_file" .img) # Get partition name from filename
@@ -230,7 +265,7 @@ flash_bootloader_partitions() {
       echo "All failed flashes succeeded after retry."
     fi
   else
-    echo "No files to flash in fastbootd. Proceeding to reboot into system."
+    echo "No files to flash in fastbootd. Returning to the Flashing Menu"
   fi
 }
 
@@ -240,7 +275,7 @@ while true; do
   echo "-----------"
   echo "1. Enter fastbootd mode"
   echo "2. Enter bootloader mode"
-  echo "3. Find Phone's active slot"
+  echo "3. Find device's active slot"
   echo "4. Select an active slot"
   if [ -n "$ACTIVE_PARTITION" ]; then
     echo "5. Erase slot $ACTIVE_PARTITION partitions"
@@ -249,7 +284,7 @@ while true; do
   fi
   echo "6. Begin flashing in fastbootd mode (1/2)"
   echo "7. Finish flashing in bootloader mode (2/2)"
-  echo "8. Reboot to phone's OS"
+  echo "8. Reboot to device's OS"
   echo "9. Exit"
   read -p "Enter your choice: " choice
   clear
