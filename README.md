@@ -8,13 +8,21 @@
 
 # Options that are Working:
 - "Enter fastbootd mode"
+  - Uses ADB to reboot device from it's operating system screen
 - "Enter bootloader mode"
+  - Checks for device to be in fastbootd mode first. Reboots to fastbootd if needed then switches to bootloader mode
 - "Find phone's active slot"
+  - Uses ADB or FASTBOOT commands to find the device's active partition slot
 - "Exit"
+  - Ends the script (ALT+C will exit if the script hits an error you can't get through)
 
 # Options in Testing
 - "Erase partitions" (Will only erase partitions of matching filenames in the image_files/ directory)
 - "Begin flashing..." (Starts flashing in fastbootd mode, where there is access to the dynamic partitions)
 - "Finish flashing..." (Finishes by flashing in bootloader mode, where there is access to system partitions)
 - "Reboot to phone's OS"!
--
+
+# Script's workflow
+- Launching the script automatically looks for the directory 'image_files/', if it does not exist, it will be created
+  - After the directory is created, the script will scan the directory for all files ending in '.BIN' & '.IMG'
+  - The filenames of the '.BIN' & '.IMG' files will be stored in a array for later processing
