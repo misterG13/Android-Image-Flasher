@@ -21,6 +21,11 @@
   1) If no slot is selected, this will erase with no slot suffix
   2) Needs to be in either fastboot mode
 - "Begin flashing..." (Starts flashing in fastbootd mode, where there is access to the dynamic partitions)
+  1) Start with your phone boot up to it's Operating System
+  2) Next, uses ADB to reboot device into fastbootd mode
+  3) Then fastboot commands are used to to flash the .BIN & .IMG files in directory, 'image_files/'
+  4) Flash command will use a slot suffix, if the user has selected one from the main menu, if not no suffix is used
+  5) Any files that failed to flash in fastbootd mode are saved to an array where 'Finish flashing..." takes over
 - "Finish flashing..." (Finishes by flashing in bootloader mode, where there is access to system partitions)
 - "Reboot to device's OS"
 
