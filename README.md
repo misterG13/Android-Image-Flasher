@@ -18,6 +18,8 @@
 
 # Options in Testing
 - "Erase partitions" (Will only erase partitions of matching filenames in the image_files/ directory)
+  1) If no slot is selected, this will erase with no slot suffix
+  2) Needs to be in either fastboot mode
 - "Begin flashing..." (Starts flashing in fastbootd mode, where there is access to the dynamic partitions)
 - "Finish flashing..." (Finishes by flashing in bootloader mode, where there is access to system partitions)
 - "Reboot to device's OS"
