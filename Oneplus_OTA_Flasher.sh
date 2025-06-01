@@ -281,7 +281,7 @@ while true; do
   if [ -n "$ACTIVE_PARTITION" ]; then
     echo "5. Erase slot $ACTIVE_PARTITION partitions"
   else
-    echo "5. Erase all active partitions"
+    echo "5. Erase active partitions"
   fi
   echo "6. Begin flashing in fastbootd mode (1/2)"
   echo "7. Finish flashing in bootloader mode (2/2)"
