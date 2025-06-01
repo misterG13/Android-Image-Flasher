@@ -25,8 +25,8 @@
   2) Next, uses ADB to reboot device into fastbootd mode
   3) Then fastboot commands are used to to flash the .BIN & .IMG files in directory, 'image_files/'
     - the filenames of the BIN and IMAGE files are used as the partition name in the fastboot flash command
-  4) Flash command will use a slot suffix, if the user has selected one from the main menu, if not no suffix is used
-  5) Any files that failed to flash in fastbootd mode are saved to an array where 'Finish flashing..." takes over
+    - Flash command will use a slot suffix, if the user has selected one from the main menu, if not no suffix is used
+  4) Any files that failed to flash in fastbootd mode are saved to an array where 'Finish flashing..." takes over
 - "Finish flashing..." (Finishes by flashing in bootloader mode, where there is access to system partitions)
 - "Reboot to device's OS"
 
