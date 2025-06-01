@@ -16,6 +16,13 @@ for file in "$OTA_DIR"/*; do
   fi
 done
 
+# If the array is empty alert user to add files in order to use Erase & Flash functions
+if [ ${#img_files[@]} -eq 0 ]; then
+  echo "No .bin or .img files found in $OTA_DIR."
+  echo "Please add files to use the Erase & Flash functions."
+  echo "" # Spacer
+fi
+
 # Function to check if device is connected in fastbootd
 enter_fastbootd_mode() {
   echo "Checking for a connected device in fastbootd mode..."
