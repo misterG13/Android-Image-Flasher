@@ -18,7 +18,7 @@
 
 # Options in Testing
 5) "Erase partitions"
-  - Will only erase partitions of with filenames that were found in the 'image_files/' directory
+  - Will only erase partitions with filenames that were found in the 'image_files/' directory
   - If no slot is selected, this will erase with no slot suffix
   - Needs to be in either fastboot mode
 6) "Begin flashing..."
