@@ -133,6 +133,66 @@ get_active_partition() {
   fi
 }
 
+# Function to switch active partition slot
+swap_active_slot() {
+  # Check if device is connected in ADB mode
+  if adb get-state 2>/dev/null | grep -q "device"; then
+    echo "[INFO] Device detected in ADB mode."
+
+    current_slot=$(adb shell getprop ro.boot.slot_suffix | tr -d '\r')
+    echo "[INFO] Current active slot: $current_slot"
+
+    read -p "Do you want to switch to the other slot? (y/n): " confirm
+    if [[ $confirm != "y" ]]; then
+      echo "[INFO] Aborted by user."
+      return
+    fi
+
+    # Switch to fastboot mode
+    echo "[ACTION] Rebooting into bootloader..."
+    adb reboot bootloader
+    sleep 25 # Give the device a moment to enter fastboot
+  fi
+
+  # Check if device is in fastboot mode
+  if fastboot devices | grep -q "fastboot"; then
+    echo "[INFO] Device detected in Fastboot mode."
+
+    current_slot=$(fastboot getvar current-slot 2>&1 | grep "current-slot" | awk '{print $2}')
+    echo "[INFO] Current active slot: $current_slot"
+
+    # Determine the new slot
+    if [[ $current_slot == "a" ]]; then
+      new_slot="b"
+    elif [[ $current_slot == "b" ]]; then
+      new_slot="a"
+    else
+      echo "[ERROR] Could not determine current slot."
+      return 1
+    fi
+
+    read -p "Switch from slot $current_slot to slot $new_slot? (y/n): " confirm
+    if [[ $confirm != "y" ]]; then
+      echo "[INFO] Aborted by user."
+      return
+    fi
+
+    echo "[ACTION] Switching to slot $new_slot..."
+    fastboot --set-active=$new_slot
+
+    echo "[SUCCESS] Active slot set to $new_slot."
+
+    read -p "Reboot the device now? (y/n): " confirm
+    if [[ $confirm == "y" ]]; then
+      fastboot reboot
+    else
+      echo "[INFO] Reboot skipped."
+    fi
+  else
+    echo "[ERROR] No device detected in ADB or Fastboot mode."
+  fi
+}
+
 # Function to all the user to select which partition they want as 'active'
 select_active_partition() {
   echo "Select the active slot:"
@@ -229,7 +289,7 @@ flash_fastbootd_partitions() {
   enter_fastbootd_mode
   if [ $? -eq 0 ]; then
     echo "Device is not in fastbootd mode. Exiting."
-    exit 1
+    return 1
   fi
 
   echo "Begin flashing dynamic partitions..."
@@ -284,16 +344,17 @@ while true; do
   echo "1. Enter fastbootd mode"
   echo "2. Enter bootloader mode"
   echo "3. Find device's active slot"
-  echo "4. Select an active slot"
+  echo "4. Swap active slot"
+  echo "5. Select a slot to flash/erase"
   if [ -n "$ACTIVE_PARTITION" ]; then
-    echo "5. Erase slot $ACTIVE_PARTITION partitions"
+    echo "6. Erase slot $ACTIVE_PARTITION partitions"
   else
-    echo "5. Erase active partitions"
+    echo "6. Erase active partitions"
   fi
-  echo "6. Begin flashing in fastbootd mode (1/2)"
-  echo "7. Finish flashing in bootloader mode (2/2)"
-  echo "8. Reboot to device's OS"
-  echo "9. Exit"
+  echo "7. Begin flashing in fastbootd mode (1/2)"
+  echo "8. Finish flashing in bootloader mode (2/2)"
+  echo "9. Reboot to device's OS"
+  echo "10. Exit"
   read -p "Enter your choice: " choice
   clear
 
@@ -301,12 +362,13 @@ while true; do
   1) enter_fastbootd_mode ;;
   2) enter_bootloader_mode ;;
   3) get_active_partition ;;
-  4) select_active_partition ;;
-  5) erase_active_partition ;;
-  6) flash_fastbootd_partitions ;;
-  7) flash_bootloader_partitions ;;
-  8) echo "fastboot reboot" ;;
-  9) exit 0 ;;
+  4) swap_active_slot ;;
+  5) select_active_partition ;;
+  6) erase_active_partition ;;
+  7) flash_fastbootd_partitions ;;
+  8) flash_bootloader_partitions ;;
+  9) echo "fastboot reboot" ;;
+  10) exit 0 ;;
   *) echo "Invalid choice. Please try again." ;;
   esac
 
