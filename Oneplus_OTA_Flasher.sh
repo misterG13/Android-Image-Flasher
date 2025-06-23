@@ -293,11 +293,13 @@ flash_fastbootd_partitions() {
   # If active_partition is not set remind user
   if [ -z "$ACTIVE_PARTITION" ]; then
     echo "[INFO] You have not selected a partition slot"
+  else
+    echo "[INFO] You have selected slot $ACTIVE_PARTITION"
   fi
 
   # Ask user to continue to flashing
   read -p "[ACTION] Start flashing the dynamic partitions? (y/n):" reply
-  if [ "$REPLY" != "y" ]; then
+  if [[ "$reply" != "y" ]]; then
     echo "[ACTION] Returning to main menu..."
     return 1
   fi
