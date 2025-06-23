@@ -309,11 +309,7 @@ flash_fastbootd_partitions() {
 flash_bootloader_partitions() {
   if [ ${#failed_files[@]} -gt 0 ]; then
     enter_bootloader_mode
-    if [ $? -eq 0 ]; then
-      echo "Device is not in bootloader mode. Exiting."
-      exit 1
-    fi
-
+    
     echo "Flashing system partitions..."
     echo "" # Spacer
 
