@@ -306,7 +306,7 @@ flash_fastbootd_partitions() {
 
   echo "" # Spacer
 
-  # Tracks failed partitions to an array
+  # Tracks failed partitions in a array
   failed_files=()
 
   # Loop through filenames found in 'image_files/'
@@ -324,7 +324,7 @@ flash_bootloader_partitions() {
   if [ ${#failed_files[@]} -gt 0 ]; then
     enter_bootloader_mode
 
-    echo "Flashing system partitions..."
+    echo "[ACTION] Flashing system partitions..."
     echo "" # Spacer
 
     for failed_file in "${failed_files[@]}"; do
@@ -333,17 +333,21 @@ flash_bootloader_partitions() {
     done
 
     if [ ${#failed_files[@]} -gt 0 ]; then
-      echo "Some files failed to flash after retrying. Logging to flash_failures.txt"
-      echo "Failed to flash the following files:" >flash_failures.txt
+      echo "[INFO] Some files failed to flash after retrying."
+      echo "[ACTION] Logging failures to flash_failures.txt"
+
+      # Outputs failed files
+      echo "Failed to flash the following files:" >flash_failures.txt # 1st line
       for failed_file in "${failed_files[@]}"; do
         echo "$failed_file" >>flash_failures.txt
       done
-      echo "Please check flash_failures.txt for the failed files."
+
+      echo "[INFO] Please check <flash_failures.txt> for the failed files."
     else
-      echo "All failed flashes succeeded after retry."
+      echo "[INFO] All failed flashes succeeded after retry."
     fi
   else
-    echo "No files to flash in fastbootd. Returning to the Flashing Menu"
+    echo "[ACTION] No failed files to flash. Returning to the main menu"
   fi
 }
 
