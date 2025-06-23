@@ -287,11 +287,7 @@ flash_image() {
 # Function to flash a partition and handle failures
 flash_fastbootd_partitions() {
   enter_fastbootd_mode
-  if [ $? -eq 0 ]; then
-    echo "Device is not in fastbootd mode. Exiting."
-    return 1
-  fi
-
+  
   echo "Begin flashing dynamic partitions..."
   echo "" # Spacer
 
