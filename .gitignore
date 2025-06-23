@@ -1,8 +1,7 @@
 # Local machine
 .cspell/
 .local/
-image_files/*.*bin
-image_files/*.*img
+image_files/*
 sources/
 
 # Log/OS Files
