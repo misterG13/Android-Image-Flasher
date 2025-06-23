@@ -18,20 +18,20 @@ done
 
 # If the array is empty alert user to add files in order to use Erase & Flash functions
 if [ ${#img_files[@]} -eq 0 ]; then
-  echo "No .bin or .img files found in $OTA_DIR."
-  echo "Please add files to use the Erase & Flash functions."
+  echo "[INFO] No .bin or .img files found in $OTA_DIR."
+  echo "[ACTION] Please add files to use the Erase & Flash functions."
   echo "" # Spacer
 fi
 
 # Function to check if device is connected in fastbootd
 enter_fastbootd_mode() {
-  echo "Checking for a connected device in fastbootd mode..."
+  echo "[ACTION] Checking for a connected device in <fastbootd> mode..."
   fastboot devices | grep -q "fastboot"
 
   # Failed to find a device in fastbootd mode
   if [ $? -ne 0 ]; then
-    echo "Device not found in fastbootd mode"
-    echo "Attempting to reboot into fastbootd mode..."
+    echo "[INFO] Device not found in <fastbootd> mode"
+    echo "[ACTION] Attempting to reboot into <fastbootd> mode..."
 
     adb reboot fastboot
     fastboot wait-for-device 2>/dev/null
@@ -42,14 +42,14 @@ enter_fastbootd_mode() {
 
     # Failed to pass re-check of fastbootd mode
     if [ $? -ne 0 ]; then
-      echo "Device failed to reboot into fastbootd mode."
+      echo "[INFO] Device failed to reboot into <fastbootd> mode."
       return 0
     else
-      echo "Device found in fastbootd mode"
+      echo "[INFO] Device found in <fastbootd> mode"
       return 1
     fi
   else
-    echo "Device found in fastbootd mode."
+    echo "[INFO] Device found in <fastbootd> mode."
     return 1
   fi
 }
@@ -287,16 +287,32 @@ flash_image() {
 # Function to flash a partition and handle failures
 flash_fastbootd_partitions() {
   enter_fastbootd_mode
-  
-  echo "Begin flashing dynamic partitions..."
+
   echo "" # Spacer
 
+  # If active_partition is not set remind user
+  if [ -z "$ACTIVE_PARTITION" ]; then
+    echo "[INFO] You have not selected a partition slot"
+  fi
+
+  # Ask user to continue to flashing
+  read -p "[ACTION] Start flashing the dynamic partitions? (y/n):" reply
+  if [ "$REPLY" != "y" ]; then
+    echo "[ACTION] Returning to main menu..."
+    return 1
+  fi
+
+  echo "" # Spacer
+
+  # Tracks failed partitions to an array
   failed_files=()
+
+  # Loop through filenames found in 'image_files/'
   for img in "${img_files[@]}"; do
     partition=$(basename "$img" .img) # Get partition name from filename
     active_suffix=$ACTIVE_PARTITION
 
-    # Flash the partition
+    # Flash the partition of filenames found in 'image_files/'
     flash_image "${partition}${active_suffix}" $img
   done
 }
@@ -305,7 +321,7 @@ flash_fastbootd_partitions() {
 flash_bootloader_partitions() {
   if [ ${#failed_files[@]} -gt 0 ]; then
     enter_bootloader_mode
-    
+
     echo "Flashing system partitions..."
     echo "" # Spacer
 
