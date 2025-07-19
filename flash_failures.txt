@@ -1,0 +1,11 @@
+Failed to flash the following files:
+./image_files/odm.img
+./image_files/product.img
+./image_files/system_ext.img
+./image_files/system.img
+./image_files/vendor.img
+./image_files/odm.img
+./image_files/product.img
+./image_files/system_ext.img
+./image_files/system.img
+./image_files/vendor.img
