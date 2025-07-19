@@ -56,7 +56,7 @@ enter_fastbootd_mode() {
 
 # Function to check if device is in bootloader mode
 enter_bootloader_mode() {
-  # Check if device is in fastbootd mode first
+  # Use 'enter_fastbootd_mode' to change device state
   if ! fastboot devices | grep -q "fastboot"; then
     echo "Error: Device is not in fastbootd mode. Switching to fastbootd mode first."
     enter_fastbootd_mode
@@ -98,34 +98,24 @@ enter_bootloader_mode() {
 get_active_partition() {
   echo "Checking for an active slot (_a or _b)..."
 
-  # Check for ADB connection
-  adb_state=$(adb get-state 2>/dev/null)
-  if [[ "$adb_state" == "device" || "$adb_state" == "recovery" ]]; then
-    echo "ADB mode detected: $adb_state"
-    # Try to get the active slot using ADB
-    active_slot=$(adb shell getprop ro.boot.slot_suffix | tr -d '_' | tr -d '\r')
-  else
-    echo "ADB not available. Device state: $adb_state"
-  fi
+  # Check over ADB
+  active_slot=$(adb shell getprop ro.boot.slot_suffix | tr -d '_' | tr -d '\r')
 
-  # Check for fastboot mode
-  fastboot_state=$(fastboot devices 2>/dev/null)
-  if [[ "$fastboot_state" == *"fastbootd"* ]]; then
-    echo "Fastboot mode detected."
-    # Try to get the active slot using fastboot
-    active_slot=$(fastboot getvar current-slot 2>&1 | grep -oE 'a|b' | head -n 1)
-  fi
+  # Verify check
+  if [[ -z "$active_slot" ]]; then
 
-  # Check for bootloader mode
-  bootloader_state=$(fastboot devices 2>/dev/null)
-  if [[ "$bootloader_state" == *"bootloader"* ]]; then
-    echo "Bootloader mode detected."
-    # Try to get the active slot using fastboot
+    # Check for fastboot mode
     active_slot=$(fastboot getvar current-slot 2>&1 | grep -oE 'a|b' | head -n 1)
+
+    # Verify check
+    if [[ -z "$active_slot" ]]; then
+      echo "Error: active_slot is empty or unset."
+    fi
   fi
 
   if [[ "$active_slot" == "a" || "$active_slot" == "b" ]]; then
     ACTIVE_SUFFIX="_$active_slot"
+    echo "Active slot: $active_slot"
     echo "Active suffix: $ACTIVE_SUFFIX"
   else
     ACTIVE_SUFFIX=""
@@ -149,9 +139,9 @@ swap_active_slot() {
     fi
 
     # Switch to fastboot mode
-    echo "[ACTION] Rebooting into bootloader..."
+    echo "[ACTION] Rebooting into bootloader (25 second pause)..."
     adb reboot bootloader
-    sleep 25 # Give the device a moment to enter fastboot
+    sleep 25 # seconds
   fi
 
   # Check if device is in fastboot mode
@@ -184,7 +174,7 @@ swap_active_slot() {
 
     read -p "Reboot the device now? (y/n): " confirm
     if [[ $confirm == "y" ]]; then
-      fastboot reboot
+      fastboot reboot-bootloader
     else
       echo "[INFO] Reboot skipped."
     fi
@@ -222,14 +212,15 @@ select_active_partition() {
   fi
 }
 
+# Function to erase partitions that match filenames in 'image_files/'
 erase_active_partition() {
   if [ -z $ACTIVE_PARTITION ]; then
     echo "This will erase the devices's currently in use slot"
-    read -p "Do you want to continue? (y/n) " choice
   else
     echo "This will erase slot $ACTIVE_PARTITION"
-    read -p "Do you want to continue? (y/n) " choice
   fi
+
+  read -p "Do you want to continue? (y/n) " choice
 
   case "$choice" in
   y | Y) ;;
@@ -264,14 +255,117 @@ erase_active_partition() {
   fi
 }
 
+# Function to find all partitions on the connected device
+find_all_partitions() {
+  echo "[ACTION] Attempting to find all partitions on the connected device..."
+
+  # Ensure the device is in fastboot mode
+  if ! fastboot devices | grep -q "fastboot"; then
+    echo "[INFO] Device not in fastboot mode. Attempting to enter fastboot mode..."
+    enter_bootloader_mode # This function already handles entering bootloader/fastboot mode
+    if [ $? -ne 1 ]; then
+      echo "[ERROR] Could not get device into fastboot mode. Cannot find partitions."
+      return 1
+    fi
+  fi
+
+  echo "Fetching A/B partition list from device..."
+
+  # Initialize arrays
+  local all_partitions a_partitions=() b_partitions=()
+
+  # Get all A/B partitions
+  mapfile -t all_partitions < <(fastboot getvar all 2>&1 |
+    grep -oP '\b\w+_(a|b)\b' | sort -u)
+
+  # Split into _a and _b arrays
+  for part in "${all_partitions[@]}"; do
+    if [[ "$part" == *_a ]]; then
+      a_partitions+=("$part")
+    elif [[ "$part" == *_b ]]; then
+      b_partitions+=("$part")
+    fi
+  done
+
+  # Display results
+  echo -e "\nFound ${#a_partitions[@]} '_a' partitions:"
+  for part in "${a_partitions[@]}"; do
+    echo "- $part"
+  done
+
+  echo -e "\nFound ${#b_partitions[@]} '_b' partitions:"
+  for part in "${b_partitions[@]}"; do
+    echo "- $part"
+  done
+
+  # Optional: export arrays for use outside function
+  export A_PARTS=("${a_partitions[@]}")
+  export B_PARTS=("${b_partitions[@]}")
+
+  erase_ab_slot_partitions
+}
+
+# Function to erase all partitions on a slot
+erase_ab_slot_partitions() {
+  # Make sure the partition arrays exist
+  if [[ -z "${A_PARTS[*]}" || -z "${B_PARTS[*]}" ]]; then
+    echo "Partition arrays are empty. Run get_ab_partition_arrays first."
+    return 1
+  fi
+
+  echo -n "Which slot would you like to erase? (a / b): "
+  read -r slot_choice
+
+  case "$slot_choice" in
+  a)
+    selected_parts=("${A_PARTS[@]}")
+    ;;
+  b)
+    selected_parts=("${B_PARTS[@]}")
+    ;;
+  *)
+    echo "Invalid choice. Please enter 'a' or 'b'."
+    return 1
+    ;;
+  esac
+
+  echo "You selected to erase slot: $slot_choice"
+  echo "The following partitions will be erased:"
+  for part in "${selected_parts[@]}"; do
+    echo "- $part"
+  done
+
+  echo -n "Are you sure you want to continue? (yes/no): "
+  read -r confirm
+  if [[ "$confirm" != "yes" ]]; then
+    echo "Operation cancelled."
+    return 1
+  fi
+
+  # Loop and erase each partition
+  for part in "${selected_parts[@]}"; do
+    echo "Erasing $part..."
+    # fastboot erase "$part"
+    echo "fastboot erase "$part""
+    if [[ $? -ne 0 ]]; then
+      echo "Failed to erase $part. Continuing with next..."
+    fi
+  done
+
+  echo "Erasing complete."
+}
+
 # Function to flash a partition
 flash_image() {
   local partition=$1
   local image=$2
 
   echo "Flashing ${partition} with ${image}..."
-  fastboot flash $partition $image
-  # echo "fastboot flash $partition $image" # testing purposes
+  if [[ $partition == vbmeta* ]]; then
+    fastboot --disable-verity --disable-verification flash "$partition" "$image"
+  else
+    fastboot flash "$partition" "$image"
+  fi
 
   # Check if the flash command was successful
   if [ $? -ne 0 ]; then
@@ -282,6 +376,37 @@ flash_image() {
   fi
 
   echo "" # Spacer
+}
+
+# Function to flash 'vbmeta' and other 'vbmeta' partitions before all others
+flash_vbmeta_files() {
+  vbmeta_files=() # Initialize/clear the array
+
+  enter_bootloader_mode
+
+  for img in "${img_files[@]}"; do
+    filename=$(basename "$img")
+    if [[ $filename == vbmeta* ]]; then
+      vbmeta_files+=("$img")
+    fi
+  done
+  # echo "vbmeta_files: ${vbmeta_files[@]}"
+
+  # Loop through filenames found in 'image_files/'
+  for img in "${vbmeta_files[@]}"; do
+    partition=$(basename "$img" .img) # Get partition name from filename
+    active_suffix=$ACTIVE_PARTITION
+
+    # Flash the partition of filenames found in 'image_files/'
+    flash_image "${partition}${active_suffix}" $img
+  done
+
+  # Reboot to OS to get into fastbootd
+  echo "[ACTION] Rebooting into OS (45 second pause)..."
+  fastboot reboot
+  sleep 45 # seconds
+
+  flash_fastbootd_partitions
 }
 
 # Function to flash a partition and handle failures
@@ -314,9 +439,17 @@ flash_fastbootd_partitions() {
     partition=$(basename "$img" .img) # Get partition name from filename
     active_suffix=$ACTIVE_PARTITION
 
+    # Skip flashing vbmeta-related images
+    if [[ $partition == vbmeta* ]]; then
+      echo "Skipping $partition image..."
+      continue
+    fi
+
     # Flash the partition of filenames found in 'image_files/'
     flash_image "${partition}${active_suffix}" $img
   done
+
+  flash_bootloader_partitions
 }
 
 # Function to reboot into bootloader mode and finish flashing files
@@ -329,7 +462,8 @@ flash_bootloader_partitions() {
 
     for failed_file in "${failed_files[@]}"; do
       partition=$(basename "$failed_file" .img) # Get partition name from filename
-      flash_image $partition $failed_file
+      # flash_image $partition $failed_file
+      flash_image "${partition}${active_suffix}" $failed_file
     done
 
     if [ ${#failed_files[@]} -gt 0 ]; then
@@ -353,35 +487,46 @@ flash_bootloader_partitions() {
 
 # Main menu
 while true; do
-  echo "Flashing Menu"
-  echo "-----------"
-  echo "1. Enter fastbootd mode"
-  echo "2. Enter bootloader mode"
-  echo "3. Find device's active slot"
-  echo "4. Swap active slot"
-  echo "5. Select a slot to flash/erase"
+  echo "Flashing Options:"
+  echo "  1. Select a slot to flash/erase"
+  echo "  2. Find device's active slot"
+
+  echo "" # Spacer
+  echo "Begin Flashing:"
+  echo "  3. Flash files in 'image_files"
+  # echo "  4. Second in bootloader mode (2/2)"
+
+  echo "" # Spacer
+  echo "Extra help:"
+  echo "  5. Enter fastbootd mode"
+  echo "  6. Enter bootloader mode"
+  echo "  7. Swap active slot"
   if [ -n "$ACTIVE_PARTITION" ]; then
-    echo "6. Erase slot $ACTIVE_PARTITION partitions"
+    echo "  8. Erase slot $ACTIVE_PARTITION partitions"
   else
-    echo "6. Erase active partitions"
+    echo "  8. Erase active partitions"
   fi
-  echo "7. Begin flashing in fastbootd mode (1/2)"
-  echo "8. Finish flashing in bootloader mode (2/2)"
-  echo "9. Reboot to device's OS"
-  echo "10. Exit"
+
+  echo "" # Spacer
+  echo "Finished:"
+  echo "  9. Reboot to device's OS"
+  echo "  10. Exit"
+
+  echo "" # Spacer
   read -p "Enter your choice: " choice
   clear
 
   case $choice in
-  1) enter_fastbootd_mode ;;
-  2) enter_bootloader_mode ;;
-  3) get_active_partition ;;
-  4) swap_active_slot ;;
-  5) select_active_partition ;;
-  6) erase_active_partition ;;
-  7) flash_fastbootd_partitions ;;
-  8) flash_bootloader_partitions ;;
-  9) echo "fastboot reboot" ;;
+  1) select_active_partition ;;
+  2) get_active_partition ;;
+  3) flash_vbmeta_files ;;
+  # 4) flash_bootloader_partitions ;;
+  5) enter_fastbootd_mode ;;
+  6) enter_bootloader_mode ;;
+  7) swap_active_slot ;;
+  # 8) erase_active_partition ;;
+  # 8) find_all_partitions ;; # Testing
+  9) fastboot reboot ;;
   10) exit 0 ;;
   *) echo "Invalid choice. Please try again." ;;
   esac
