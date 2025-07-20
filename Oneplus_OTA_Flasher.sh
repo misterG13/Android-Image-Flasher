@@ -362,7 +362,8 @@ flash_image() {
 
   echo "Flashing ${partition} with ${image}..."
   if [[ $partition == vbmeta* ]]; then
-    fastboot --disable-verity --disable-verification flash "$partition" "$image"
+    # fastboot --disable-verity --disable-verification flash "$partition" "$image"
+    fastboot flash --disable-verity --disable-verification "$partition" "$image"
   else
     fastboot flash "$partition" "$image"
   fi
@@ -493,7 +494,7 @@ while true; do
 
   echo "" # Spacer
   echo "Begin Flashing:"
-  echo "  3. Flash files in 'image_files"
+  echo "  3. Flash files in 'image_files/'"
   # echo "  4. Second in bootloader mode (2/2)"
 
   echo "" # Spacer
