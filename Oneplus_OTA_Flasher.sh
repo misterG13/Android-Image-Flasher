@@ -25,72 +25,45 @@ fi
 
 # Function to check if device is connected in fastbootd
 enter_fastbootd_mode() {
-  echo "[ACTION] Checking for a connected device in <fastbootd> mode..."
-  fastboot devices | grep -q "fastboot"
+  echo "[ACTION] Attempting to reboot into <fastbootd> mode..."
 
-  # Failed to find a device in fastbootd mode
-  if [ $? -ne 0 ]; then
-    echo "[INFO] Device not found in <fastbootd> mode"
-    echo "[ACTION] Attempting to reboot into <fastbootd> mode..."
+  # Check if any device is connected in ADB mode (excluding 'unauthorized' and 'offline')
+  adb_device=$(adb devices | awk '$2 == "device" { print $1 }')
 
+  if [ -n "$adb_device" ]; then
+    echo "[INFO] Device is currently in <adb> mode: $adb_device"
+    echo "[ACTION] Rebooting into <fastbootd> mode..."
     adb reboot fastboot
+    echo "[INFO] Waiting for device in fastboot..."
     fastboot wait-for-device 2>/dev/null
-    # "2>/dev/null" Suppresses an error that seems to be a false positive
-
-    # Re-check for device in fastbootd mode
-    fastboot devices | grep -q "fastboot"
-
-    # Failed to pass re-check of fastbootd mode
-    if [ $? -ne 0 ]; then
-      echo "[INFO] Device failed to reboot into <fastbootd> mode."
-      return 0
-    else
-      echo "[INFO] Device found in <fastbootd> mode"
-      return 1
-    fi
   else
-    echo "[INFO] Device found in <fastbootd> mode."
-    return 1
+    echo "[INFO] Device is not detected in ADB. Assuming <fastboot> mode..."
+    echo "[ACTION] Rebooting into <fastbootd> mode..."
+    fastboot reboot fastboot
+    echo "[INFO] Waiting for device in fastbootd..."
+    fastboot wait-for-device 2>/dev/null
   fi
 }
 
 # Function to check if device is in bootloader mode
 enter_bootloader_mode() {
-  # Use 'enter_fastbootd_mode' to change device state
-  if ! fastboot devices | grep -q "fastboot"; then
-    echo "Error: Device is not in fastbootd mode. Switching to fastbootd mode first."
-    enter_fastbootd_mode
-  fi
+  echo "[ACTION] Attempting to reboot into <bootloader> mode..."
 
-  echo "Checking for a connected device in bootloader mode..."
-  fastboot devices | grep -q "bootloader"
+  # Check if any device is connected in ADB mode (excluding 'unauthorized' and 'offline')
+  adb_device=$(adb devices | awk '$2 == "device" { print $1 }')
 
-  # Failed to find a device in bootloader mode
-  if [ $? -ne 0 ]; then
-    echo "Device not found in bootloader mode."
-    echo "Attempting to reboot into bootloader mode..."
-
-    fastboot reboot bootloader
-    # fastboot wait-for-device 2>/dev/null
-    # "2>/dev/null" Suppresses an error that seems to be a false positive
-    while ! fastboot devices; do
-      sleep 1
-    done
-
-    # Re-check for device in bootloader mode
-    fastboot devices | grep -q "bootloader"
-
-    # Failed to pass re-check of bootloader mode
-    if [ $? -ne 0 ]; then
-      echo "Device failed to reboot into bootloader mode."
-      return 0
-    else
-      echo "Device found in bootloader mode."
-      return 1
-    fi
+  if [ -n "$adb_device" ]; then
+    echo "[INFO] Device is currently in <adb> mode: $adb_device"
+    echo "[ACTION] Rebooting into <bootloader> mode..."
+    adb reboot bootloader
+    echo "[INFO] Waiting for device in bootloader..."
+    fastboot wait-for-device 2>/dev/null
   else
-    echo "Device found in bootloader mode."
-    return 1
+    echo "[INFO] Device is not detected in ADB. Assuming <bootloader> mode..."
+    echo "[ACTION] Rebooting into <bootloader> mode..."
+    fastboot reboot bootloader
+    echo "[INFO] Waiting for device in bootloader..."
+    fastboot wait-for-device 2>/dev/null
   fi
 }
 
@@ -362,7 +335,6 @@ flash_image() {
 
   echo "Flashing ${partition} with ${image}..."
   if [[ $partition == vbmeta* ]]; then
-    # fastboot --disable-verity --disable-verification flash "$partition" "$image"
     fastboot flash --disable-verity --disable-verification "$partition" "$image"
   else
     fastboot flash "$partition" "$image"
@@ -401,13 +373,6 @@ flash_vbmeta_files() {
     # Flash the partition of filenames found in 'image_files/'
     flash_image "${partition}${active_suffix}" $img
   done
-
-  # Reboot to OS to get into fastbootd
-  echo "[ACTION] Rebooting into OS (45 second pause)..."
-  fastboot reboot
-  sleep 45 # seconds
-
-  flash_fastbootd_partitions
 }
 
 # Function to flash a partition and handle failures
@@ -493,25 +458,27 @@ while true; do
   echo "  2. Find device's active slot"
 
   echo "" # Spacer
-  echo "Begin Flashing:"
-  echo "  3. Flash files in 'image_files/'"
+  echo "Begin Flashing files from 'image_files/':"
+  echo "  3. (1st) Flash VBMETA files"
+  echo "  4. (2nd) Flash dynamic partitions"
+  echo "  5. (3rd) Flash system partitions"
   # echo "  4. Second in bootloader mode (2/2)"
 
   echo "" # Spacer
   echo "Extra help:"
-  echo "  5. Enter fastbootd mode"
-  echo "  6. Enter bootloader mode"
-  echo "  7. Swap active slot"
+  echo "  6. Enter fastbootd mode"
+  echo "  7. Enter bootloader mode"
+  echo "  8. Swap active slot"
   if [ -n "$ACTIVE_PARTITION" ]; then
-    echo "  8. Erase slot $ACTIVE_PARTITION partitions"
+    echo "  9. Erase slot $ACTIVE_PARTITION partitions"
   else
-    echo "  8. Erase active partitions"
+    echo "  9. Erase active partitions"
   fi
 
   echo "" # Spacer
   echo "Finished:"
-  echo "  9. Reboot to device's OS"
-  echo "  10. Exit"
+  echo "  10. Reboot to device's OS"
+  echo "  11. Exit"
 
   echo "" # Spacer
   read -p "Enter your choice: " choice
@@ -521,14 +488,15 @@ while true; do
   1) select_active_partition ;;
   2) get_active_partition ;;
   3) flash_vbmeta_files ;;
-  # 4) flash_bootloader_partitions ;;
-  5) enter_fastbootd_mode ;;
-  6) enter_bootloader_mode ;;
-  7) swap_active_slot ;;
-  # 8) erase_active_partition ;;
-  # 8) find_all_partitions ;; # Testing
-  9) fastboot reboot ;;
-  10) exit 0 ;;
+  4) flash_fastbootd_partitions ;;
+  5) flash_bootloader_partitions ;;
+  6) enter_fastbootd_mode ;;
+  7) enter_bootloader_mode ;;
+  8) swap_active_slot ;;
+  # 9) erase_active_partition ;;
+  # 9) find_all_partitions ;; # Testing
+  10) fastboot reboot ;;
+  11) exit 0 ;;
   *) echo "Invalid choice. Please try again." ;;
   esac
 
