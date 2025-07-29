@@ -69,31 +69,32 @@ enter_bootloader_mode() {
 
 # Function to get the active partition (_a or _b)
 get_active_slot() {
-  echo "Checking for an active slot (_a or _b)..."
+  echo "[ACTION] Checking for active slot A/B ..."
+  sleep 1
 
-  # Check over ADB
-  active_slot=$(adb shell getprop ro.boot.slot_suffix | tr -d '_' | tr -d '\r')
+  # Check if device is available in ADB mode
+  adb_device=$(adb devices | awk '$2 == "device" { print $1 }')
 
-  # Verify check
-  if [[ -z "$active_slot" ]]; then
-
-    # Check for fastboot mode
+  if [ -n "$adb_device" ]; then
+    # echo "[INFO] Device is in ADB mode: $adb_device"
+    active_slot=$(adb shell getprop ro.boot.slot_suffix 2>/dev/null | tr -d '_\r\n')
+  else
+    # echo "[INFO] Device is not in ADB mode. Assuming FASTBOOT mode..."
     active_slot=$(fastboot getvar current-slot 2>&1 | grep -oE 'a|b' | head -n 1)
-
-    # Verify check
-    if [[ -z "$active_slot" ]]; then
-      echo "Error: active_slot is empty or unset."
-    fi
   fi
 
+  # Verify slot
   if [[ "$active_slot" == "a" || "$active_slot" == "b" ]]; then
     ACTIVE_SUFFIX="_$active_slot"
-    echo "Active slot: $active_slot"
-    echo "Active suffix: $ACTIVE_SUFFIX"
+    echo "[INFO] Active slot: $active_slot"
+    echo "[INFO] Active suffix: $ACTIVE_SUFFIX"
   else
     ACTIVE_SUFFIX=""
-    echo "No active A/B slot detected."
+    echo "[INFO] Non A/B slot scheme found."
   fi
+
+  sleep 2
+  return 0
 }
 
 # Function to switch active partition slot
