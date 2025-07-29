@@ -43,6 +43,8 @@ enter_fastbootd_mode() {
     echo "[INFO] Waiting for device in fastbootd..."
     fastboot wait-for-device 2>/dev/null
   fi
+
+  echo "" # Spacer
 }
 
 # Function to check if device is in bootloader mode
@@ -65,6 +67,8 @@ enter_bootloader_mode() {
     echo "[INFO] Waiting for device in bootloader..."
     fastboot wait-for-device 2>/dev/null
   fi
+
+  echo "" # Spacer
 }
 
 # Function to get the active partition (_a or _b)
@@ -174,10 +178,11 @@ select_active_slot() {
     unset ACTIVE_PARTITION
     ;;
   *)
-    echo "Invalid choice. Defaulting to _a."
-    ACTIVE_PARTITION="_a"
+    echo "Invalid choice. No slot selected"
     ;;
   esac
+
+  clear
 
   if [ -z "$ACTIVE_PARTITION" ]; then
     echo "Active slot cleared."
@@ -329,6 +334,25 @@ erase_ab_slot_partitions() {
   echo "Erasing complete."
 }
 
+# Function to verify with the user the slot they did or did not select
+verify_flash_slot() {
+  # If active_partition is not set remind user
+  if [ -z "$ACTIVE_PARTITION" ]; then
+    echo "[INFO] You have not selected a partition slot"
+  else
+    echo "[INFO] You have selected slot $ACTIVE_PARTITION"
+  fi
+
+  # Ask user to continue to flashing
+  read -p "[ACTION] Start flashing partitions? (y/n):" reply
+  if [[ "$reply" != "y" ]]; then
+    echo "[ACTION] Returning to main menu..."
+    return 1
+  fi
+
+  echo "" # Spacer
+}
+
 # Function to flash a partition
 flash_image() {
   local partition=$1
@@ -355,6 +379,10 @@ flash_image() {
 # Function to flash 'vbmeta' and other 'vbmeta' partitions before all others
 flash_vbmeta_partitions() {
   enter_bootloader_mode
+
+  if ! verify_flash_slot; then
+    return 1
+  fi
 
   echo ""         # Spacer
   vbmeta_files=() # Initialize/clear the array
@@ -383,21 +411,9 @@ flash_fastbootd_partitions() {
 
   echo "" # Spacer
 
-  # If active_partition is not set remind user
-  if [ -z "$ACTIVE_PARTITION" ]; then
-    echo "[INFO] You have not selected a partition slot"
-  else
-    echo "[INFO] You have selected slot $ACTIVE_PARTITION"
-  fi
-
-  # Ask user to continue to flashing
-  read -p "[ACTION] Start flashing the dynamic partitions? (y/n):" reply
-  if [[ "$reply" != "y" ]]; then
-    echo "[ACTION] Returning to main menu..."
+  if ! verify_flash_slot; then
     return 1
   fi
-
-  echo "" # Spacer
 
   # Tracks failed partitions in a array
   failed_files=()
@@ -416,14 +432,16 @@ flash_fastbootd_partitions() {
     # Flash the partition of filenames found in 'image_files/'
     flash_image "${partition}${active_suffix}" $img
   done
-
-  flash_bootloader_partitions
 }
 
 # Function to reboot into bootloader mode and finish flashing files
 flash_bootloader_partitions() {
   if [ ${#failed_files[@]} -gt 0 ]; then
     enter_bootloader_mode
+
+    if ! verify_flash_slot; then
+      return 1
+    fi
 
     echo "[ACTION] Flashing system partitions..."
     echo "" # Spacer
@@ -457,15 +475,15 @@ flash_bootloader_partitions() {
 # Main menu
 while true; do
   echo "Flashing Options:"
-  echo "  1. Select a slot to flash/erase"
-  echo "  2. Find device's active slot"
+  echo "  1. Find device's active slot"
+  echo "  2. Select a slot to flash/erase"
   echo "  3. Swap active slot"
 
   echo "" # Spacer
-  echo "Begin Flashing files from 'image_files/':"
+  echo "Flashing files from 'image_files/':"
   echo "  4. (1st) Flash VBMETA files"
   echo "  5. (2nd) Flash dynamic partitions"
-  echo "  6. (3rd) Flash system partitions (if needed)"
+  echo "  6. (3rd) Flash system partitions"
 
   echo "" # Spacer
   echo "Boot Modes:"
@@ -488,8 +506,8 @@ while true; do
   clear
 
   case $choice in
-  1) select_active_slot ;;
-  2) get_active_slot ;;
+  1) get_active_slot ;;
+  2) select_active_slot ;;
   3) swap_active_slot ;;
   4) flash_vbmeta_partitions ;;
   5) flash_fastbootd_partitions ;;
@@ -498,6 +516,7 @@ while true; do
   8) enter_bootloader_mode ;;
   # 9) erase_active_partition ;; # Testing
   # 9) find_all_partitions ;; # Testing
+  9) verify_flash_slot ;;
   10) fastboot reboot ;;
   11) exit 0 ;;
   *) echo "Invalid choice. Please try again." ;;
