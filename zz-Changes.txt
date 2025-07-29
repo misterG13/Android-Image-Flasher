@@ -1,5 +1,0 @@
-have erase partition happen before every flash
-
-combine flashing sequence fastbootd & bootloader into one option
-
-menu update; re-order
