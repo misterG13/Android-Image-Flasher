@@ -68,7 +68,7 @@ enter_bootloader_mode() {
 }
 
 # Function to get the active partition (_a or _b)
-get_active_partition() {
+get_active_slot() {
   echo "Checking for an active slot (_a or _b)..."
 
   # Check over ADB
@@ -157,7 +157,7 @@ swap_active_slot() {
 }
 
 # Function to all the user to select which partition they want as 'active'
-select_active_partition() {
+select_active_slot() {
   echo "Select the active slot:"
   echo "1. _a"
   echo "2. _b"
@@ -352,10 +352,11 @@ flash_image() {
 }
 
 # Function to flash 'vbmeta' and other 'vbmeta' partitions before all others
-flash_vbmeta_files() {
-  vbmeta_files=() # Initialize/clear the array
-
+flash_vbmeta_partitions() {
   enter_bootloader_mode
+
+  echo ""         # Spacer
+  vbmeta_files=() # Initialize/clear the array
 
   for img in "${img_files[@]}"; do
     filename=$(basename "$img")
@@ -448,6 +449,7 @@ flash_bootloader_partitions() {
     fi
   else
     echo "[ACTION] No failed files to flash. Returning to the main menu"
+    return 1
   fi
 }
 
@@ -456,24 +458,24 @@ while true; do
   echo "Flashing Options:"
   echo "  1. Select a slot to flash/erase"
   echo "  2. Find device's active slot"
+  echo "  3. Swap active slot"
 
   echo "" # Spacer
   echo "Begin Flashing files from 'image_files/':"
-  echo "  3. (1st) Flash VBMETA files"
-  echo "  4. (2nd) Flash dynamic partitions"
-  echo "  5. (3rd) Flash system partitions"
-  # echo "  4. Second in bootloader mode (2/2)"
+  echo "  4. (1st) Flash VBMETA files"
+  echo "  5. (2nd) Flash dynamic partitions"
+  echo "  6. (3rd) Flash system partitions (if needed)"
 
   echo "" # Spacer
-  echo "Extra help:"
-  echo "  6. Enter fastbootd mode"
-  echo "  7. Enter bootloader mode"
-  echo "  8. Swap active slot"
-  if [ -n "$ACTIVE_PARTITION" ]; then
-    echo "  9. Erase slot $ACTIVE_PARTITION partitions"
-  else
-    echo "  9. Erase active partitions"
-  fi
+  echo "Boot Modes:"
+  echo "  7. Enter fastbootd mode"
+  echo "  8. Enter bootloader mode"
+
+  # if [ -n "$ACTIVE_PARTITION" ]; then
+  #   echo "  9. Erase slot $ACTIVE_PARTITION partitions"
+  # else
+  #   echo "  9. Erase active partitions"
+  # fi
 
   echo "" # Spacer
   echo "Finished:"
@@ -485,15 +487,15 @@ while true; do
   clear
 
   case $choice in
-  1) select_active_partition ;;
-  2) get_active_partition ;;
-  3) flash_vbmeta_files ;;
-  4) flash_fastbootd_partitions ;;
-  5) flash_bootloader_partitions ;;
-  6) enter_fastbootd_mode ;;
-  7) enter_bootloader_mode ;;
-  8) swap_active_slot ;;
-  # 9) erase_active_partition ;;
+  1) select_active_slot ;;
+  2) get_active_slot ;;
+  3) swap_active_slot ;;
+  4) flash_vbmeta_partitions ;;
+  5) flash_fastbootd_partitions ;;
+  6) flash_bootloader_partitions ;;
+  7) enter_fastbootd_mode ;;
+  8) enter_bootloader_mode ;;
+  # 9) erase_active_partition ;; # Testing
   # 9) find_all_partitions ;; # Testing
   10) fastboot reboot ;;
   11) exit 0 ;;
