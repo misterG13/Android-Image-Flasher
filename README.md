@@ -1,4 +1,4 @@
-# Android-Oneplus-Image-Flasher
+# Android-Image-Flasher
 - Flash any combination of Android image files
 - Select a slot to flash
 - Find a device's active partition slot
