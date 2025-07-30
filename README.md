@@ -1,5 +1,6 @@
 # Android-Oneplus-Image-Flasher
 - Flash any combination of Android image files
+- Select a slot to flash
 - Find a device's active partition slot
 - Erase all partitions on a selected slot
 
