@@ -4,7 +4,7 @@
 - Erase all partitions on a selected slot
 
 # Screenshot
-![screenshot](https://github.com/user-attachments/assets/2bd3f3dc-e4bd-44a3-84d2-1c297cd306aa)
+![screenshot](https://github.com/user-attachments/assets/2fc294ea-669b-4c2e-b86b-5cf88a8c8260)
 
 # Options that are Working:
 1) "Enter fastbootd mode"
