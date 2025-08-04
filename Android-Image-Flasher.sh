@@ -71,6 +71,29 @@ enter_bootloader_mode() {
   echo "" # Spacer
 }
 
+# Function to reboot into Recovery mode
+enter_recovery_mode() {
+  echo "[ACTION] Attempting to reboot into <recovery> mode..."
+
+  # Check if any device is connected in ADB mode (excluding 'unauthorized' and 'offline')
+  adb_device=$(adb devices | awk '$2 == "device" { print $1 }')
+
+  if [ -n "$adb_device" ]; then
+    echo "[INFO] Device is currently in <adb> mode: $adb_device"
+    echo "[ACTION] Rebooting into <recovery> mode via ADB..."
+    adb reboot recovery
+    echo "[INFO] Waiting for device to enter recovery..."
+  else
+    echo "[INFO] Device is not detected in ADB. Assuming <fastboot> mode..."
+    echo "[ACTION] Rebooting into <recovery> mode via Fastboot..."
+    fastboot reboot recovery
+    echo "[INFO] Sent reboot to recovery command via fastboot."
+  fi
+
+  echo "" # Spacer
+}
+
+
 # Function to get the active partition (_a or _b)
 get_active_slot() {
   echo "[ACTION] Checking for active slot A/B ..."
@@ -360,7 +383,7 @@ flash_image() {
 
   echo "Flashing ${partition} with ${image}..."
   if [[ $partition == vbmeta* ]]; then
-    fastboot flash --disable-verity --disable-verification "$partition" "$image"
+    fastboot flash "$partition" "$image" --disable-verity --disable-verification
   else
     fastboot flash "$partition" "$image"
   fi
@@ -489,6 +512,7 @@ while true; do
   echo "Boot Modes:"
   echo "  7. Enter fastbootd mode"
   echo "  8. Enter bootloader mode"
+  echo "  9. Enter recovery mode"
 
   # if [ -n "$ACTIVE_PARTITION" ]; then
   #   echo "  9. Erase slot $ACTIVE_PARTITION partitions"
@@ -516,7 +540,7 @@ while true; do
   8) enter_bootloader_mode ;;
   # 9) erase_active_partition ;; # Testing
   # 9) find_all_partitions ;; # Testing
-  9) verify_flash_slot ;;
+  9) enter_recovery_mode ;;
   10) fastboot reboot ;;
   11) exit 0 ;;
   *) echo "Invalid choice. Please try again." ;;
