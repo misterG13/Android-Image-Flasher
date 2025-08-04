@@ -23,7 +23,11 @@
   - you can add files ending in '.IMG' and '.BIN', all others will be ignored
 
 2) How does the script know the partition name to flash each file to?
-  - the script takes every file from the directory 'image_files/', removes the file extension and then uses the remaining filename as the partition name.
+  - the script takes every file from the directory 'image_files/', removes the file extension and then uses the remaining filename as the partition name
 
 3) Does this script ONLY work with A/B partition schemes?
-  - NO, if you choose not to select a slot to flash to, then the script will flash without a slot suffix.
+  - NO, if you choose not to select a slot to flash to, then the script will flash without a slot suffix
+
+4) Flashing keeps failed because partition not found or needs resize
+  - if a partition needs to be resized, that can only be done in fastbootd mode
+  - removing the slot selection and instead swapping to the slot you wish to flash to. then flash without a slot suffix, allowing the script to flash to the active slot instead
