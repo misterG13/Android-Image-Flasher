@@ -1,10 +1,12 @@
-# Android-Image-Flasher
+# Android Image Flasher
 1) Flash any combination of Android image files
   - repair your boot partition, apply firmware updates or add custom recovery
 2) Select a slot to flash
   - designed for devices with A/B partition schemes, but works on single slot devices as well
 3) Find a device's active partition slot
   - detect if your device has an A/B partition scheme
+4) Swap device's active slot
+  - choose which slot you want to boot from
 
 # Screenshot
 ![screenshot](https://github.com/user-attachments/assets/2fc294ea-669b-4c2e-b86b-5cf88a8c8260)
