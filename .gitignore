@@ -3,7 +3,7 @@
 .local/
 image_files*/*.*bin
 image_files*/*.*img
-image_files/RAW
+image_files*/RAW
 sources/
 
 # Log/OS Files
