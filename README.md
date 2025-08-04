@@ -28,6 +28,6 @@
 3) Does this script ONLY work with A/B partition schemes?
   - NO, if you choose not to select a slot to flash to, then the script will flash without a slot suffix
 
-4) Flashing keeps failed because partition not found or needs resize
+4) Flashing keeps failing because a partition is not found or needs to be resized
   - if a partition needs to be resized, that can only be done in fastbootd mode
   - removing the slot selection and instead swapping to the slot you wish to flash to. then flash without a slot suffix, allowing the script to flash to the active slot instead
