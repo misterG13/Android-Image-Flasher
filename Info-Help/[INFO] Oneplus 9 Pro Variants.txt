@@ -1,0 +1,4 @@
+LE2121 - IN : DA
+LE2123 - EU : BA
+LE2125 - NA/Global : AA
+LE2127 - T-Mobile : ACB
