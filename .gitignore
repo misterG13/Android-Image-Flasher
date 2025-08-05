@@ -1,10 +1,11 @@
-# Local machine
-.cspell/
+# Directories
 .local/
-image_files*/*.*bin
-image_files*/*.*img
+.vscode/
 image_files*/RAW
 sources/
 
-# Log/OS Files
+# Files
+image_files*/*.*bin
+image_files*/*.*img
 *.log
+*.png
