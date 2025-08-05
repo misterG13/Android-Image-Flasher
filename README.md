@@ -17,6 +17,9 @@
 3) USB Debugging enabled on the device
 4) Bootloader unlocked on the device
 
+# Options that are Working:
+1) If the options in the menu are visible, the option is than also usable
+
 # Script's Workflow​
 ### Setup​
 1) Download the zip file below
@@ -54,5 +57,5 @@
   - removing the slot selection and instead swapping to the slot you wish to flash to. then flash without a slot suffix, allowing the script to flash to the active slot instead
 
 
-## Download the script from Github​ 
+## Download the script from Github​
 - (zip file from github, always up to date)​
