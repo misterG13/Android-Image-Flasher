@@ -17,9 +17,6 @@
 3) USB Debugging enabled on the device
 4) Bootloader unlocked on the device
 
-# Options that are Working:
-1) If the options in the menu are visible, the option is than also usable
-
 # Script's Workflow​
 ### Setup​
 1) Download the zip file below
