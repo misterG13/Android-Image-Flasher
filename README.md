@@ -9,7 +9,7 @@
   - choose which slot you want to boot from
 
 # Screenshot
-![screenshot](https://github.com/user-attachments/assets/2fc294ea-669b-4c2e-b86b-5cf88a8c8260)
+![screenshot](https://github.com/user-attachments/assets/8be3ae03-ff28-490b-9bc1-fab0ebf899de)
 
 # Requirements​
 1) Linux system
