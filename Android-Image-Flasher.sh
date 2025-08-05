@@ -93,7 +93,6 @@ enter_recovery_mode() {
   echo "" # Spacer
 }
 
-
 # Function to get the active partition (_a or _b)
 get_active_slot() {
   echo "[ACTION] Checking for active slot A/B ..."
@@ -477,15 +476,15 @@ flash_bootloader_partitions() {
 
     if [ ${#failed_files[@]} -gt 0 ]; then
       echo "[INFO] Some files failed to flash after retrying."
-      echo "[ACTION] Logging failures to flash_failures.txt"
+      echo "[ACTION] Logging failures to flash_failures.log"
 
       # Outputs failed files
-      echo "Failed to flash the following files:" >flash_failures.txt # 1st line
+      echo "[INFO] Failed to flash the following files:" >flash_failures.log # 1st line
       for failed_file in "${failed_files[@]}"; do
-        echo "$failed_file" >>flash_failures.txt
+        echo "$failed_file" >>flash_failures.log
       done
 
-      echo "[INFO] Please check <flash_failures.txt> for the failed files."
+      echo "[INFO] Please check <flash_failures.log> for the failed files."
     else
       echo "[INFO] All failed flashes succeeded after retry."
     fi
