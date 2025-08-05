@@ -54,5 +54,5 @@
   - removing the slot selection and instead swapping to the slot you wish to flash to. then flash without a slot suffix, allowing the script to flash to the active slot instead
 
 
-## Download the script from Github​
+## Download the script from Github​ 
 - (zip file from github, always up to date)​
