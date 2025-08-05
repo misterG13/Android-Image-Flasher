@@ -1,3 +1,0 @@
-Failed to flash the following files:
-./image_files/vendor.img
-./image_files/vendor.img
