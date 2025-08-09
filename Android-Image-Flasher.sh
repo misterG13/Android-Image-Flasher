@@ -513,12 +513,6 @@ while true; do
   echo "  8. Enter bootloader mode"
   echo "  9. Enter recovery mode"
 
-  # if [ -n "$ACTIVE_PARTITION" ]; then
-  #   echo "  9. Erase slot $ACTIVE_PARTITION partitions"
-  # else
-  #   echo "  9. Erase active partitions"
-  # fi
-
   echo "" # Spacer
   echo "Finished:"
   echo "  10. Reboot to device's OS"
@@ -537,8 +531,6 @@ while true; do
   6) flash_bootloader_partitions ;;
   7) enter_fastbootd_mode ;;
   8) enter_bootloader_mode ;;
-  # 9) erase_active_partition ;; # Testing
-  # 9) find_all_partitions ;; # Testing
   9) enter_recovery_mode ;;
   10) fastboot reboot ;;
   11) exit 0 ;;
