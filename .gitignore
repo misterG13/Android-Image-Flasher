@@ -2,10 +2,12 @@
 .local/
 .vscode/
 image_files*/RAW
+Info-Help/
 sources/
 
 # Files
 image_files*/*.*bin
 image_files*/*.*img
+image_files*/*.*txt
 *.log
 *.png
