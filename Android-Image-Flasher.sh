@@ -1,24 +1,24 @@
 #!/bin/bash
 
 # Set directory for extracted OTA images
-OTA_DIR="./image_files"
+FLASH_FILES="./image_files"
 
 # Check if directory exists; if not: create it
-if [ ! -d "$OTA_DIR" ]; then
-  mkdir -p "$OTA_DIR"
+if [ ! -d "$FLASH_FILES" ]; then
+  mkdir -p "$FLASH_FILES"
 fi
 
-# Create an array using the filenames of  the .bin & .img files in the directory
-img_files=()
-for file in "$OTA_DIR"/*; do
+# Create an array of files with extensions
+flash_files=()
+for file in "$FLASH_FILES"/*; do
   if [[ "$file" == *.img || "$file" == *.bin ]]; then
-    img_files+=("$file")
+    flash_files+=("$file")
   fi
 done
 
 # If the array is empty alert user to add files in order to use Erase & Flash functions
-if [ ${#img_files[@]} -eq 0 ]; then
-  echo "[INFO] No .bin or .img files found in $OTA_DIR."
+if [ ${#flash_files[@]} -eq 0 ]; then
+  echo "[INFO] No .bin or .img files found in $FLASH_FILES."
   echo "[ACTION] Please add files to use the Erase & Flash functions."
   echo "" # Spacer
 fi
@@ -410,7 +410,8 @@ flash_vbmeta_partitions() {
   vbmeta_files=() # Initialize/clear the array
 
   for img in "${img_files[@]}"; do
-    filename=$(basename "$img")
+    # Remove .img or .bin from the end of the filename using regex
+    filename=$(basename "$img" | sed -E 's/\.(img|bin)$//')
     if [[ $filename == vbmeta* ]]; then
       vbmeta_files+=("$img")
     fi
@@ -441,18 +442,20 @@ flash_fastbootd_partitions() {
   failed_files=()
 
   # Loop through filenames found in 'image_files/'
-  for img in "${img_files[@]}"; do
-    partition=$(basename "$img" .img) # Get partition name from filename
+  for file in "${flash_files[@]}"; do
+    # Remove .img or .bin from the end of the filename using regex
+    partition=$(basename "$file" | sed -E 's/\.(img|bin)$//')
+
     active_suffix=$ACTIVE_PARTITION
 
     # Skip flashing vbmeta-related images
-    if [[ $partition == vbmeta* ]]; then
-      echo "Skipping $partition image..."
+    if [[ $name == vbmeta* ]]; then
+      echo "Skipping $name image..."
       continue
     fi
 
     # Flash the partition of filenames found in 'image_files/'
-    flash_image "${partition}${active_suffix}" $img
+    flash_image "${name}${active_suffix}" $file
   done
 }
 
@@ -469,8 +472,8 @@ flash_bootloader_partitions() {
     echo "" # Spacer
 
     for failed_file in "${failed_files[@]}"; do
-      partition=$(basename "$failed_file" .img) # Get partition name from filename
-      # flash_image $partition $failed_file
+      # Remove .img or .bin from the end of the filename using regex
+      partition=$(basename "$img" | sed -E 's/\.(img|bin)$//')
       flash_image "${partition}${active_suffix}" $failed_file
     done
 
