@@ -1,0 +1,3 @@
+If you flash super.img from LE2123 on LE2127, modem bands may change. If your carrier stops working, you can reflash the LE2127 modem.img afterward.
+
+If fingerprint/Widevine L1 fails, you might also need to flash persist.img from LE2123.
