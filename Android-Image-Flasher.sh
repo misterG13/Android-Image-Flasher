@@ -449,13 +449,13 @@ flash_fastbootd_partitions() {
     active_suffix=$ACTIVE_PARTITION
 
     # Skip flashing vbmeta-related images
-    if [[ $name == vbmeta* ]]; then
-      echo "Skipping $name image..."
+    if [[ $partition == vbmeta* ]]; then
+      echo "Skipping $partition image..."
       continue
     fi
 
     # Flash the partition of filenames found in 'image_files/'
-    flash_image "${name}${active_suffix}" $file
+    flash_image "${partition}${active_suffix}" $file
   done
 }
 
