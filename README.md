@@ -55,4 +55,4 @@
 
 
 ## Download the script from Github​
-- [Zip file from Github, (always up to date)​](https://example.com "Download the script from Github​")
+- [Zip file from Github, (always up to date)​](https://github.com/misterG13/Android-Image-Flasher/archive/refs/heads/main.zip "Download the script from Github​")
