@@ -55,4 +55,4 @@
 
 
 ## Download the script from Github​
-- (zip file from github, always up to date)​
+- [Zip file from Github, (always up to date)​](https://example.com "Download the script from Github​")
