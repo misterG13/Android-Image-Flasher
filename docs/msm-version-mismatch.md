@@ -27,7 +27,7 @@ Example version strings:
 
 ## How to Fix
 
-### Option 1: Convert the MSM Tool (Advanced)
+### Convert the MSM Tool (Advanced)
 Modify the T-Mobile MSM tool's `settings.xml` to accept India firmware:
 1. Edit the tool's configuration
 2. Re-encrypt the `.ops` file
@@ -35,18 +35,6 @@ Modify the T-Mobile MSM tool's `settings.xml` to accept India firmware:
 
 Reference: DroidWin MSM Region Conversion Guide
 https://droidwin.com/how-to-convert-msm-download-tool-to-a-different-region
-
-### Option 2: Use Fastboot Flashing (Recommended)
-Instead of MSM, use fastboot to flash T-Mobile firmware directly:
-1. Download T-Mobile fastboot ROM for LE2127
-2. Flash all partitions via fastboot scripts
-3. This bypasses the MSM version check
-
-Reference: XDA OnePlus 9 Pro Fastboot ROM Thread
-https://xdaforums.com/t/fastboot-rom-oos-oneplus-9-pro-stock-fastboot-rom-eu-cn.4588383/
-
-### Option 3: Flash India MSM Again
-If you want to stay on India firmware, just use the India MSM tool again to restore.
 
 ## Key Takeaway
 
