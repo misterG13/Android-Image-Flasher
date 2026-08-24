@@ -15,3 +15,4 @@ The `super` partition is a container for the device's **dynamic (logical) partit
 ## Related Docs
 
 - [Repairing Modem After a New Variant Flash](repair-modem-after-variant-flash.md) — cross-variant `super.img` flashes and their fallout
+- [Image Files From the Extracted OPS Package](image-files-by-purpose.md) — which files to flash for a ROM-only update vs full firmware

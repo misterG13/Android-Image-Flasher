@@ -14,3 +14,7 @@ Flashing `super.img` from a different model variant (e.g. LE2123/EU firmware ont
 ## Key Takeaway
 
 The variant mismatch lives inside the dynamic partitions (`super.img`), so repairing it is done by reflashing the affected single partition images for the correct variant — no full re-flash required.
+
+## Related Docs
+
+- [Image Files From the Extracted OPS Package](image-files-by-purpose.md) — full radio-repair file set and other purpose groups
