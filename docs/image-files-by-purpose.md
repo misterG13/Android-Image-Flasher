@@ -4,6 +4,17 @@ Extracting an `.ops` file (MSM Download Tool package) yields ~75 files with unfa
 
 The groups below answer the common questions: *which files for a ROM update*, *which files repair cellular/WiFi/Bluetooth*, and *which files make up a full OTA-style firmware update*.
 
+## Table of Contents
+
+- [OPS Filename → Flasher Filename](#ops-filename-flasher-filename)
+- [Group 1 — ROM / OS Update Only](#group-1-rom-os-update-only)
+- [Group 2 — Radio / Connectivity Repair (Cellular, WiFi, Bluetooth)](#group-2-radio-connectivity-repair-cellular-wifi-bluetooth)
+- [Group 3 — Full Firmware Update (OTA-Equivalent)](#group-3-full-firmware-update-ota-equivalent)
+- [Group 4 — Full Restore / Unbrick](#group-4-full-restore-unbrick)
+- [Never Flash Casually (MSM-Only / Device-Written)](#never-flash-casually-msm-only-device-written)
+- [Related Docs](#related-docs)
+- [Sources](#sources)
+
 ## OPS Filename → Flasher Filename
 
 Names differ between the OPS extract (`ops-extract/`) and this repo's `flash-files/`:

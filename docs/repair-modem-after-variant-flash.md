@@ -1,5 +1,12 @@
 # Repairing Modem After a New Variant Flash (OnePlus 9 Pro)
 
+## Table of Contents
+
+- [When This Happens](#when-this-happens)
+- [Symptoms and Fixes](#symptoms-and-fixes)
+- [Key Takeaway](#key-takeaway)
+- [Related Docs](#related-docs)
+
 ## When This Happens
 
 Flashing `super.img` from a different model variant (e.g. LE2123/EU firmware onto a LE2127/T-Mobile device) can change the modem configuration stored on the device.

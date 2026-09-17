@@ -1,5 +1,16 @@
 # Restoring OEM State & Google Integrity (OnePlus 9 Pro)
 
+## Table of Contents
+
+- [The Process](#the-process)
+- [Key Requirements](#key-requirements)
+- [What Google Integrity Actually Checks](#what-google-integrity-actually-checks)
+- [Confirmed Flow (XDA Forums - LE2127)](#confirmed-flow-xda-forums-le2127)
+- [Risks](#risks)
+- [Options Comparison](#options-comparison)
+- [Recommendation](#recommendation)
+- [Sources](#sources)
+
 ## The Process
 
 1. Flash stock OxygenOS firmware via fastboot (all partitions)
