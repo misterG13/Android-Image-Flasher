@@ -1,5 +1,14 @@
 # Fixing "Invalid sparse file format at header magic" (OnePlus 9 Pro)
 
+## Table of Contents
+
+- [The Problem](#the-problem)
+- [The Fix](#the-fix)
+  - [1. Install the conversion tools (one-time)](#1-install-the-conversion-tools-one-time)
+  - [2. Convert the raw image to sparse](#2-convert-the-raw-image-to-sparse)
+  - [3. Rename so the flasher picks up the right file](#3-rename-so-the-flasher-picks-up-the-right-file)
+- [Notes](#notes)
+
 ## The Problem
 
 `fastboot flash` rejects some partition images with:

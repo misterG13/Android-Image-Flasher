@@ -1,5 +1,16 @@
 # MSM Download Tool Version Mismatch (OnePlus 9 Pro)
 
+## Table of Contents
+
+- [The Problem](#the-problem)
+- [Why It Happens](#why-it-happens)
+- [Technical Details](#technical-details)
+- [How to Fix](#how-to-fix)
+  - [Convert the MSM Tool (Advanced)](#convert-the-msm-tool-advanced)
+- [Key Takeaway](#key-takeaway)
+- [OnePlus 9 Pro Model Variants](#oneplus-9-pro-model-variants)
+- [Sources](#sources)
+
 ## The Problem
 
 After using the India MSM tool, the T-Mobile MSM tool shows a version mismatch and refuses to flash.
